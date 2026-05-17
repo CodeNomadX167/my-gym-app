@@ -26,7 +26,7 @@ export default function ExerciseCard({ exercise, isCompleted, toggleComplete, ba
   const [prData, setPrData] = useLocalStorage(`gym_pr_${exercise.id}`, { weight: '', reps: '' });
   
   // Timer State
-  const [timerLeft, setTimerLeft] = useState(0); // 0 means not running
+  const [timerLeft, setTimerLeft] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
   const audioCtxRef = useRef(null);
 
@@ -85,7 +85,6 @@ export default function ExerciseCard({ exercise, isCompleted, toggleComplete, ba
     }
   };
 
-  // 60 sec circle calculation (strokeDasharray ~ 113 for r=18)
   const circleOffset = 113 - (113 * timerLeft) / 60;
 
   return (
@@ -93,7 +92,14 @@ export default function ExerciseCard({ exercise, isCompleted, toggleComplete, ba
       <div className="exercise-header">
         <div className="exercise-info">
           <h3 className="exercise-title">{exercise.name}</h3>
-          <span className={`muscle-badge ${badgeClass}`}>{exercise.targetMuscle}</span>
+          <div className="exercise-meta">
+            <span className={`muscle-badge ${badgeClass}`}>{exercise.targetMuscle}</span>
+            {exercise.sets && (
+              <span className="sets-reps-badge">
+                {exercise.sets} × {exercise.reps}
+              </span>
+            )}
+          </div>
         </div>
         <button 
           className="complete-btn" 
@@ -106,26 +112,45 @@ export default function ExerciseCard({ exercise, isCompleted, toggleComplete, ba
 
       <div className="video-wrapper">
         <div className="video-container">
-          <video
-            id={videoId}
-            src={`/videos/${exercise.name}.mp4`}
-            controls
-            loop
-            muted
-            autoPlay
-            playsInline
-          >
-            Your browser does not support the video tag.
-          </video>
+          {exercise.videoUrl ? (
+            <iframe
+  id={videoId}
+  src={exercise.videoUrl}
+  title={`${exercise.name} tutorial`}
+  frameBorder="0"
+  loading="lazy"
+  referrerPolicy="strict-origin-when-cross-origin"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+  style={{
+    border: 'none',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%'
+  }}
+/>
+          ) : (
+            <video
+              id={videoId}
+              src={`/videos/${exercise.name}.mp4`}
+              controls
+              loop
+              muted
+              autoPlay
+              playsInline
+            >
+              Your browser does not support the video tag.
+            </video>
+          )}
         </div>
         <button className="fullscreen-btn" onClick={handleFullscreen} title="Fullscreen">
            <FullscreenIcon />
         </button>
       </div>
 
-      {/* Tools Section */}
       <div className="card-tools">
-        {/* PR Tracker */}
         <div className="pr-tracker">
           <div className="input-group">
             <label>Weight (kg)</label>
@@ -147,7 +172,6 @@ export default function ExerciseCard({ exercise, isCompleted, toggleComplete, ba
           </div>
         </div>
 
-        {/* Rest Timer */}
         <div className="timer-wrapper">
           {timerLeft > 0 ? (
             <div className="active-timer">

@@ -35,21 +35,35 @@ const MoonIcon = () => (
 const getMuscleBadgeClass = (target) => {
   if(!target) return '';
   const t = target.toLowerCase();
-  if (t.includes('chest')) return 'badge-chest';
+  if (t.includes('warmup')) return 'badge-warmup';
+  if (t.includes('chest') || t.includes('upper focus')) return 'badge-chest';
   if (t.includes('back') || t.includes('trap')) return 'badge-back';
   if (t.includes('leg') || t.includes('quad') || t.includes('hamstring') || t.includes('glute') || t.includes('calf') || t.includes('calves')) return 'badge-legs';
   if (t.includes('arm') || t.includes('bicep') || t.includes('tricep') || t.includes('forearm') || t.includes('brachioradialis')) return 'badge-arms';
   if (t.includes('shoulder') || t.includes('delt')) return 'badge-shoulders';
   if (t.includes('abs') || t.includes('core') || t.includes('oblique')) return 'badge-core';
+  if (t.includes('cardio')) return 'badge-cardio';
   return '';
 };
 
+const dayMapping = [
+  { key: 1, label: "Mon" },
+  { key: 2, label: "Tue" },
+  { key: 3, label: "Wed" },
+  { key: 4, label: "Thu" },
+  { key: 5, label: "Fri" },
+  { key: 6, label: "Sat" },
+  { key: 0, label: "Sun" },
+];
+
 function App() {
-  const [activeDay, setActiveDay] = useState(1);
+  const [activeDay, setActiveDay] = useState(() => new Date().getDay());
+  const [activeSession, setActiveSession] = useState('morning'); // 'morning' | 'afternoon'
+  const [subCategory, setSubCategory] = useState('Warm-up');
   const [isDarkMode, setIsDarkMode] = useLocalStorage('gym_theme_dark', true);
   
-  // We store array of completed IDs to be localstorage safe
-  const [completedArr, setCompletedArr] = useLocalStorage('gym_completed_exercises', []);
+  // Array of completed IDs to be localstorage safe
+  const [completedArr, setCompletedArr] = useLocalStorage('gym_completed_exercises_v3', []);
   const completedExercises = new Set(completedArr);
 
   const toggleComplete = (id) => {
@@ -62,29 +76,43 @@ function App() {
     setCompletedArr(Array.from(newSet));
   };
 
+  // Switch Theme & Context Class
   useEffect(() => {
     document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
+    document.body.className = `theme-${activeSession}`;
+  }, [isDarkMode, activeSession]);
+
+  // Handle switching main session
+  const handleSessionChange = (session) => {
+    setActiveSession(session);
+    setSubCategory('Warm-up'); // Default to warmup on switch
+  };
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
-  const currentWorkout = workoutPlan[activeDay];
+  const dayData = workoutPlan[activeDay];
+  const currentSessionData = dayData[activeSession];
   
-  const totalExercises = currentWorkout.restDay ? 0 : currentWorkout.exercises.length;
-  const completedCount = currentWorkout.restDay ? 0 : currentWorkout.exercises.filter(ex => completedExercises.has(ex.id)).length;
+  const totalExercises = currentSessionData.restDay ? 0 : currentSessionData.exercises.length;
+  const completedCount = currentSessionData.restDay ? 0 : currentSessionData.exercises.filter(ex => completedExercises.has(ex.id)).length;
   const progressPercent = totalExercises === 0 ? 0 : Math.round((completedCount / totalExercises) * 100);
 
-  // Trigger confetti
+  // Trigger confetti per full session
   useEffect(() => {
     if (progressPercent === 100 && totalExercises > 0) {
+      // Dynamic confetti colors based on session
+      const colors = activeSession === 'morning' ? ['#38bdf8', '#ffffff', '#00E676'] : ['#ea580c', '#ffffff', '#00E676'];
       confetti({
         particleCount: 150,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#ccff00', '#ffffff', '#0056b3']
+        colors: colors
       });
     }
-  }, [progressPercent, totalExercises]);
+  }, [progressPercent, totalExercises, activeSession]);
+
+  // Filter exercises for sub-category display
+  const displayedExercises = currentSessionData.restDay ? [] : currentSessionData.exercises.filter(ex => ex.category === subCategory);
 
   return (
     <div className="app-container">
@@ -105,30 +133,65 @@ function App() {
         <HydrationTracker />
       </div>
 
+      {/* Day Selector */}
       <div className="day-selector-container">
         <div className="day-selector">
-          {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+          {dayMapping.map((dayObj) => (
             <button
-              key={day}
-              className={`day-btn ${activeDay === day ? 'active' : ''}`}
-              onClick={() => setActiveDay(day)}
+              key={dayObj.key}
+              className={`day-btn ${activeDay === dayObj.key ? 'active' : ''}`}
+              onClick={() => setActiveDay(dayObj.key)}
             >
-              Day {day}
+              {dayObj.label}
             </button>
           ))}
         </div>
       </div>
 
-      <main className="workout-view" key={activeDay}>
+      {/* Main Session Toggle */}
+      <div className="session-toggle-container main-toggle">
+        <button 
+          className={`session-btn ${activeSession === 'morning' ? 'active' : ''}`}
+          onClick={() => handleSessionChange('morning')}
+        >
+          Morning Session
+        </button>
+        <button 
+          className={`session-btn ${activeSession === 'afternoon' ? 'active' : ''}`}
+          onClick={() => handleSessionChange('afternoon')}
+        >
+          Afternoon Session
+        </button>
+      </div>
+
+      {/* Sub Category Toggle */}
+      {!currentSessionData.restDay && (
+        <div className="session-toggle-container sub-toggle">
+          {activeSession === 'morning' ? (
+            <>
+              <button className={`session-btn ${subCategory === 'Warm-up' ? 'active' : ''}`} onClick={() => setSubCategory('Warm-up')}>Warm-up</button>
+              <button className={`session-btn ${subCategory === 'Abs' ? 'active' : ''}`} onClick={() => setSubCategory('Abs')}>Abs</button>
+              <button className={`session-btn ${subCategory === 'Cardio' ? 'active' : ''}`} onClick={() => setSubCategory('Cardio')}>Cardio</button>
+            </>
+          ) : (
+            <>
+              <button className={`session-btn ${subCategory === 'Warm-up' ? 'active' : ''}`} onClick={() => setSubCategory('Warm-up')}>Warm-up</button>
+              <button className={`session-btn ${subCategory === 'Gym Workout' ? 'active' : ''}`} onClick={() => setSubCategory('Gym Workout')}>Gym Workout</button>
+            </>
+          )}
+        </div>
+      )}
+
+      <main className="workout-view" key={`${activeDay}-${activeSession}-${subCategory}`}>
         <div className="view-header">
-           <h2 className="day-title">{currentWorkout.title}</h2>
-           {!currentWorkout.restDay && <MuscleMap activeDay={activeDay} workoutData={workoutPlan} />}
+           <h2 className="day-title">{currentSessionData.title} <span style={{opacity: 0.5, fontSize: '0.6em', marginLeft: '10px'}}>{subCategory}</span></h2>
+           {!currentSessionData.restDay && <MuscleMap sessionTitle={currentSessionData.title} />}
         </div>
 
-        {!currentWorkout.restDay && (
+        {!currentSessionData.restDay && (
           <div className="progress-container">
             <div className="progress-header">
-              <span>Daily Progress</span>
+              <span>Full Session Progress</span>
               <span>{completedCount} / {totalExercises} ({progressPercent}%)</span>
             </div>
             <div className="progress-bar-bg">
@@ -137,14 +200,14 @@ function App() {
           </div>
         )}
 
-        {currentWorkout.restDay ? (
+        {currentSessionData.restDay ? (
           <div className="rest-day-card">
             <div className="rest-icon">🧘‍♂️</div>
-            <p className="quote">"{currentWorkout.quote}"</p>
+            <p className="quote">"{currentSessionData.quote}"</p>
           </div>
         ) : (
           <div className="exercise-grid">
-            {currentWorkout.exercises.map((exercise) => (
+            {displayedExercises.map((exercise) => (
               <ExerciseCard 
                 key={exercise.id}
                 exercise={exercise}

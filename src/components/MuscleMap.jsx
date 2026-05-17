@@ -1,6 +1,5 @@
 import React from 'react';
 
-// Generates an ambient neon glow depending on active parts
 const SVG_CONSTANTS = {
   chest: "M35,35 c10,-5 20,-5 30,0 c0,15 -15,20 -30,0 z",
   back: "M35,35 c10,-5 20,-5 30,0 c5,15 -20,30 -30,0 z",
@@ -10,16 +9,15 @@ const SVG_CONSTANTS = {
   legs: "M40,80 c-5,20 -10,40 -5,55 c5,-10 10,-30 15,-55 z M60,80 c5,20 10,40 5,55 c-5,-10 -10,-30 -15,-55 z"
 };
 
-export default function MuscleMap({ activeDay, workoutData }) {
-  const workout = workoutData[activeDay];
+export default function MuscleMap({ sessionTitle }) {
+  const t = (sessionTitle || "").toLowerCase();
   
-  // Determine highlighted muscles based on day mapping loosely
-  const isChest = workout.title.toLowerCase().includes('chest');
-  const isBack = workout.title.toLowerCase().includes('back');
-  const isAbs = workout.title.toLowerCase().includes('abs') || workout.title.toLowerCase().includes('core');
-  const isArms = workout.title.toLowerCase().includes('arm') || workout.title.toLowerCase().includes('bicep') || workout.title.toLowerCase().includes('tricep');
-  const isShoulders = workout.title.toLowerCase().includes('shoulder');
-  const isLegs = workout.title.toLowerCase().includes('leg');
+  const isChest = t.includes('chest') || t.includes('upper focus');
+  const isBack = t.includes('back');
+  const isAbs = t.includes('abs') || t.includes('core') || t.includes('plank');
+  const isArms = t.includes('arm') || t.includes('bicep') || t.includes('tricep') || t.includes('forearm');
+  const isShoulders = t.includes('shoulder') || t.includes('delt');
+  const isLegs = t.includes('leg');
 
   const highlightClass = "active-muscle";
 
