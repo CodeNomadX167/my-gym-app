@@ -4,7 +4,6 @@ import { workoutPlan } from './data';
 import { useLocalStorage } from './hooks/useLocalStorage';
 
 import DailyQuote from './components/DailyQuote';
-import HydrationTracker from './components/HydrationTracker';
 import MusicWidget from './components/MusicWidget';
 import MuscleMap from './components/MuscleMap';
 import ExerciseCard from './components/ExerciseCard';
@@ -36,8 +35,8 @@ const getMuscleBadgeClass = (target) => {
   if(!target) return '';
   const t = target.toLowerCase();
   if (t.includes('warmup')) return 'badge-warmup';
-  if (t.includes('chest') || t.includes('upper focus')) return 'badge-chest';
-  if (t.includes('back') || t.includes('trap')) return 'badge-back';
+  if (t.includes('chest') || t.includes('upper focus') || t.includes('pec')) return 'badge-chest';
+  if (t.includes('back') || t.includes('trap') || t.includes('width') || t.includes('thickness')) return 'badge-back';
   if (t.includes('leg') || t.includes('quad') || t.includes('hamstring') || t.includes('glute') || t.includes('calf') || t.includes('calves')) return 'badge-legs';
   if (t.includes('arm') || t.includes('bicep') || t.includes('tricep') || t.includes('forearm') || t.includes('brachioradialis')) return 'badge-arms';
   if (t.includes('shoulder') || t.includes('delt')) return 'badge-shoulders';
@@ -58,12 +57,11 @@ const dayMapping = [
 
 function App() {
   const [activeDay, setActiveDay] = useState(() => new Date().getDay());
-  const [activeSession, setActiveSession] = useState('morning'); // 'morning' | 'afternoon'
   const [subCategory, setSubCategory] = useState('Warm-up');
   const [isDarkMode, setIsDarkMode] = useLocalStorage('gym_theme_dark', true);
   
   // Array of completed IDs to be localstorage safe
-  const [completedArr, setCompletedArr] = useLocalStorage('gym_completed_exercises_v3', []);
+  const [completedArr, setCompletedArr] = useLocalStorage('gym_completed_exercises_v5', []);
   const completedExercises = new Set(completedArr);
 
   const toggleComplete = (id) => {
@@ -76,32 +74,24 @@ function App() {
     setCompletedArr(Array.from(newSet));
   };
 
-  // Switch Theme & Context Class
+  // Switch Theme Context Class
   useEffect(() => {
     document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-    document.body.className = `theme-${activeSession}`;
-  }, [isDarkMode, activeSession]);
-
-  // Handle switching main session
-  const handleSessionChange = (session) => {
-    setActiveSession(session);
-    setSubCategory('Warm-up'); // Default to warmup on switch
-  };
+  }, [isDarkMode]);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   const dayData = workoutPlan[activeDay];
-  const currentSessionData = dayData[activeSession];
   
-  const totalExercises = currentSessionData.restDay ? 0 : currentSessionData.exercises.length;
-  const completedCount = currentSessionData.restDay ? 0 : currentSessionData.exercises.filter(ex => completedExercises.has(ex.id)).length;
+  const totalExercises = dayData.restDay ? 0 : dayData.exercises.length;
+  const completedCount = dayData.restDay ? 0 : dayData.exercises.filter(ex => completedExercises.has(ex.id)).length;
   const progressPercent = totalExercises === 0 ? 0 : Math.round((completedCount / totalExercises) * 100);
 
   // Trigger confetti per full session
   useEffect(() => {
     if (progressPercent === 100 && totalExercises > 0) {
-      // Dynamic confetti colors based on session
-      const colors = activeSession === 'morning' ? ['#38bdf8', '#ffffff', '#00E676'] : ['#ea580c', '#ffffff', '#00E676'];
+      // Dynamic confetti colors based on the single deep charcoal/orange theme
+      const colors = ['#ea580c', '#ffffff', '#00E676'];
       confetti({
         particleCount: 150,
         spread: 70,
@@ -109,10 +99,9 @@ function App() {
         colors: colors
       });
     }
-  }, [progressPercent, totalExercises, activeSession]);
+  }, [progressPercent, totalExercises]);
 
-  // Filter exercises for sub-category display
-  const displayedExercises = currentSessionData.restDay ? [] : currentSessionData.exercises.filter(ex => ex.category === subCategory);
+  const displayedExercises = dayData.restDay ? [] : dayData.exercises.filter(ex => ex.category === subCategory);
 
   return (
     <div className="app-container">
@@ -127,10 +116,6 @@ function App() {
         <button onClick={toggleTheme} className="theme-toggle-btn" aria-label="Toggle Theme">
           {isDarkMode ? <SunIcon /> : <MoonIcon />}
         </button>
-      </div>
-
-      <div className="dashboard-top-widgets">
-        <HydrationTracker />
       </div>
 
       {/* Day Selector */}
@@ -148,50 +133,24 @@ function App() {
         </div>
       </div>
 
-      {/* Main Session Toggle */}
-      <div className="session-toggle-container main-toggle">
-        <button 
-          className={`session-btn ${activeSession === 'morning' ? 'active' : ''}`}
-          onClick={() => handleSessionChange('morning')}
-        >
-          Morning Session
-        </button>
-        <button 
-          className={`session-btn ${activeSession === 'afternoon' ? 'active' : ''}`}
-          onClick={() => handleSessionChange('afternoon')}
-        >
-          Afternoon Session
-        </button>
-      </div>
-
-      {/* Sub Category Toggle */}
-      {!currentSessionData.restDay && (
-        <div className="session-toggle-container sub-toggle">
-          {activeSession === 'morning' ? (
-            <>
-              <button className={`session-btn ${subCategory === 'Warm-up' ? 'active' : ''}`} onClick={() => setSubCategory('Warm-up')}>Warm-up</button>
-              <button className={`session-btn ${subCategory === 'Abs' ? 'active' : ''}`} onClick={() => setSubCategory('Abs')}>Abs</button>
-              <button className={`session-btn ${subCategory === 'Cardio' ? 'active' : ''}`} onClick={() => setSubCategory('Cardio')}>Cardio</button>
-            </>
-          ) : (
-            <>
-              <button className={`session-btn ${subCategory === 'Warm-up' ? 'active' : ''}`} onClick={() => setSubCategory('Warm-up')}>Warm-up</button>
-              <button className={`session-btn ${subCategory === 'Gym Workout' ? 'active' : ''}`} onClick={() => setSubCategory('Gym Workout')}>Gym Workout</button>
-            </>
-          )}
-        </div>
-      )}
-
-      <main className="workout-view" key={`${activeDay}-${activeSession}-${subCategory}`}>
+      <main className="workout-view" key={`${activeDay}`}>
         <div className="view-header">
-           <h2 className="day-title">{currentSessionData.title} <span style={{opacity: 0.5, fontSize: '0.6em', marginLeft: '10px'}}>{subCategory}</span></h2>
-           {!currentSessionData.restDay && <MuscleMap sessionTitle={currentSessionData.title} />}
+           <h2 className="day-title">{dayData.title}</h2>
+           {!dayData.restDay && <MuscleMap sessionTitle={dayData.title} />}
         </div>
 
-        {!currentSessionData.restDay && (
+        {!dayData.restDay && (
+          <div className="session-toggle-container sub-toggle">
+            <button className={`session-btn ${subCategory === 'Warm-up' ? 'active' : ''}`} onClick={() => setSubCategory('Warm-up')}>Warm-up</button>
+            <button className={`session-btn ${subCategory === 'Cardio' ? 'active' : ''}`} onClick={() => setSubCategory('Cardio')}>Cardio</button>
+            <button className={`session-btn ${subCategory === 'Workout' ? 'active' : ''}`} onClick={() => setSubCategory('Workout')}>Workout</button>
+          </div>
+        )}
+
+        {!dayData.restDay && (
           <div className="progress-container">
             <div className="progress-header">
-              <span>Full Session Progress</span>
+              <span>Workout Progress</span>
               <span>{completedCount} / {totalExercises} ({progressPercent}%)</span>
             </div>
             <div className="progress-bar-bg">
@@ -200,10 +159,10 @@ function App() {
           </div>
         )}
 
-        {currentSessionData.restDay ? (
+        {dayData.restDay ? (
           <div className="rest-day-card">
             <div className="rest-icon">🧘‍♂️</div>
-            <p className="quote">"{currentSessionData.quote}"</p>
+            <p className="quote">"{dayData.quote}"</p>
           </div>
         ) : (
           <div className="exercise-grid">

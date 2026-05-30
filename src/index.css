@@ -1,15 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Default Dark Mode (Obsidian) */
+  /* Default Dark Mode (Deep Charcoal & Electric Orange) */
   --bg-color: #080808;
+  --card-bg: rgba(26, 26, 26, 0.7); /* #1a1a1a Deep Charcoal */
   --card-border: #222222;
+  --accent: #ea580c; /* Burned Orange */
   --accent-text: #080808;
   --text-main: #f0f0f0;
   --text-muted: #888888;
   --glass-border: rgba(255, 255, 255, 0.05);
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   --backdrop-blur: blur(12px);
+  --glow-color: rgba(234, 88, 12, 0.3);
   --success-green: #00E676;
 }
 
@@ -27,26 +30,7 @@
   --success-green: #00b359;
 }
 
-/* Session Themes */
-body.theme-morning {
-  --card-bg: rgba(30, 41, 59, 0.7); /* #1e293b Muted Midnight Blue */
-  --accent: #38bdf8; /* Soft Blue */
-  --glow-color: rgba(56, 189, 248, 0.3);
-}
-body.theme-afternoon {
-  --card-bg: rgba(26, 26, 26, 0.7); /* #1a1a1a Deep Charcoal */
-  --accent: #ea580c; /* Burned Orange */
-  --glow-color: rgba(234, 88, 12, 0.3);
-}
 
-[data-theme='light'] body.theme-morning {
-  --accent: #008080; /* Teal for light mode morning */
-  --glow-color: rgba(0, 128, 128, 0.3);
-}
-[data-theme='light'] body.theme-afternoon {
-  --accent: #e65c00; /* Darker orange for light mode afternoon */
-  --glow-color: rgba(230, 92, 0, 0.3);
-}
 
 * {
   box-sizing: border-box;
@@ -108,6 +92,8 @@ body {
   transform: scale(1.1);
   box-shadow: 0 0 15px var(--glow-color);
 }
+
+
 
 /* Session Toggle */
 .session-toggle-container {
@@ -496,57 +482,7 @@ body {
   filter: url(#neon-glow);
 }
 
-/* Hydration Tracker */
-.hydration-widget {
-  background: var(--card-bg);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--card-border);
-  padding: 1rem 1.5rem;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  box-shadow: var(--shadow);
-}
-.water-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.water-icon {
-  font-size: 1.8rem;
-  filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.4));
-}
-.water-stats h4 {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-.water-stats p {
-  font-weight: 600;
-  font-size: 1rem;
-}
-.btn-water {
-  background: rgba(0, 191, 255, 0.1);
-  border: 1px solid rgba(0, 191, 255, 0.3);
-  color: #00bfff;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-.btn-water:hover {
-  background: rgba(0, 191, 255, 0.2);
-  transform: translateY(-2px);
-}
-.btn-water.reset {
-  background: transparent;
-  border: none;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  padding: 0.5rem;
-}
+
 
 /* Music Widget */
 .music-widget-container {
