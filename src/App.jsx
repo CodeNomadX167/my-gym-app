@@ -141,8 +141,6 @@ function App() {
 
         {!dayData.restDay && (
           <div className="session-toggle-container sub-toggle">
-            <button className={`session-btn ${subCategory === 'Warm-up' ? 'active' : ''}`} onClick={() => setSubCategory('Warm-up')}>Warm-up</button>
-            <button className={`session-btn ${subCategory === 'Cardio' ? 'active' : ''}`} onClick={() => setSubCategory('Cardio')}>Cardio</button>
             <button className={`session-btn ${subCategory === 'Workout' ? 'active' : ''}`} onClick={() => setSubCategory('Workout')}>Workout</button>
           </div>
         )}
